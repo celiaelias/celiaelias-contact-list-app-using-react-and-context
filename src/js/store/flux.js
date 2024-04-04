@@ -1,43 +1,121 @@
 const getState = ({ getStore, getActions, setStore }) => {
 	return {
 		store: {
-			demo: [
-				{
-					title: "FIRST",
-					background: "white",
-					initial: "white"
-				},
-				{
-					title: "SECOND",
-					background: "white",
-					initial: "white"
-				}
-			]
+			contacts: [],
+
 		},
 		actions: {
-			// Use getActions to call a function within a fuction
-			exampleFunction: () => {
-				getActions().changeColor(0, "green");
-			},
-			loadSomeData: () => {
-				/**
-					fetch().then().then(data => setStore({ "foo": data.bar }))
-				*/
-			},
-			changeColor: (index, color) => {
-				//get the store
-				const store = getStore();
+			getContacts: async () => {
+				try {
+					const requestOptions = {
+						method: 'GET',
+						redirect: 'follow'
+					};
 
-				//we have to loop the entire demo array to look for the respective index
-				//and change its color
-				const demo = store.demo.map((elm, i) => {
-					if (i === index) elm.background = color;
-					return elm;
-				});
+					const response = await fetch("https://playground.4geeks.com/contact/agendas/celiaelias_agenda", requestOptions);
+					if (response.ok) {
+						const data = await response.json();
+						setStore({ contacts: data });
+						console.log("Contactos obtenidos exitosamente:", data);
+					} else {
+						console.error("Error al obtener los contactos");
+					}
+				} catch (error) {
+					console.error("Error al realizar la solicitud:", error);
+				}
+			},
 
-				//reset the global store
-				setStore({ demo: demo });
-			}
+
+			createContact: async (formData) => {
+				try {
+					const myHeaders = new Headers();
+					myHeaders.append("Content-Type", "application/json");
+
+					const raw = JSON.stringify({
+						"name": formData.name,
+						"email": formData.email,
+						"agenda_slug": "celiaelias_agenda",
+						"address": formData.address,
+						"phone": formData.phone
+					});
+
+					const requestOptions = {
+						method: 'POST',
+						headers: myHeaders,
+						body: raw,
+						redirect: 'follow'
+					};
+
+					const response = await fetch("https://playground.4geeks.com/contact/agendas/celiaelias_agenda/contacts", requestOptions);
+
+					if (response.ok) {
+						console.log("Contact successfully created");
+					} else {
+						const errorBody = await response.text();
+						console.error("Error creating the contact - Response:", response);
+						console.error("Full error text:", errorBody);
+					}
+				} catch (error) {
+					console.error("Error in the request:", error);
+				}
+			},
+
+			updateContact: async (formData, id) => {
+				try {
+					const myHeaders = new Headers();
+					myHeaders.append("Content-Type", "application/json");
+
+					const raw = JSON.stringify({
+						"name": formData.name,
+						"email": formData.email,
+						"agenda_slug": "celiaelias_agenda",
+						"address": formData.address,
+						"phone": formData.phone
+					});
+
+					const requestOptions = {
+						method: 'PUT',
+						headers: myHeaders,
+						body: raw,
+						redirect: 'follow'
+					};
+
+					const response = await fetch(`https://playground.4geeks.com/contact/agendas/celiaelias_agenda/contacts/${id}`, requestOptions);
+
+					if (response.ok) {
+						console.log("Contact successfully updated");
+					} else {
+						const errorBody = await response.text();
+						console.error("Error in updating the contact - Response:", response);
+						console.error("Full error text::", errorBody);
+					}
+				} catch (error) {
+					console.error("Error in the request:", error);
+				}
+			},
+
+			deleteContact: async (id) => {
+				try {
+					const requestOptions = {
+						method: "DELETE",
+						redirect: "follow",
+					};
+					const response = await fetch(
+						`https://playground.4geeks.com/contact/agendas/celiaelias_agenda/contacts/${id}`,
+						requestOptions
+					);
+
+					if (response.ok) {
+						console.log("Contact successfully deleted");
+						getActions().getContacts();
+					} else {
+						console.error("Error in deleting the contact");
+					}
+
+				} catch (error) {
+					console.error("Error in the request:", error);
+				}
+			},
 		}
 	};
 };
